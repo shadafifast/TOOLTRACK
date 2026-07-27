@@ -26,11 +26,35 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      // Alias @ to the src directory
       '@': path.resolve(__dirname, './src'),
     },
   },
 
   // File types to support raw imports. Never add .css, .tsx, or .ts files to this.
   assetsInclude: ['**/*.svg', '**/*.csv'],
+
+  build: {
+    // ─── Code Splitting: Pisahkan library besar ke chunk terpisah ────────────
+    // Manfaat: Browser bisa cache library secara terpisah.
+    // Jika kode aplikasi berubah, user tidak perlu re-download library (recharts dll).
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React core — jarang berubah, browser cache lebih lama
+          'vendor-react': ['react', 'react-dom', 'react-router'],
+
+          // Recharts (library grafik) — file terbesar, pisahkan sendiri
+          'vendor-recharts': ['recharts'],
+
+          // QR Code generator — hanya dipakai di 1 halaman
+          'vendor-qrcode': ['qrcode'],
+
+          // Radix UI & Lucide icons
+          'vendor-ui': ['lucide-react'],
+        },
+      },
+    },
+    // Naikkan batas warning chunk size (ini normal untuk app enterprise)
+    chunkSizeWarningLimit: 600,
+  },
 })

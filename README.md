@@ -1,279 +1,417 @@
-# ToolTrack QR — Sistem Manajemen Aset TIK
+# 🔧 ToolTrack QR — Sistem Manajemen Aset TIK
+### PT Semen Padang — Divisi TIK
 
-Aplikasi web untuk manajemen peminjaman alat dan aset TIK menggunakan sistem QR Code.
-Dibangun dengan **React + TypeScript + Vite + Tailwind CSS**.
+> Aplikasi web untuk manajemen peminjaman alat dan aset TIK menggunakan sistem QR Code.
+> Dibangun dengan **React + TypeScript + Vite + Tailwind CSS**.
 
 ---
 
 ## 📋 Daftar Isi
-
-- [Teknologi yang Digunakan](#teknologi)
-- [Cara Menjalankan](#cara-menjalankan)
-- [Struktur Folder](#struktur-folder)
-- [Panduan Integrasi Back-End](#panduan-integrasi-back-end)
-- [Daftar Endpoint API yang Dibutuhkan](#daftar-endpoint-api)
-- [Cara Deploy](#cara-deploy)
+- [Tech Stack](#-tech-stack)
+- [Cara Menjalankan Proyek](#-cara-menjalankan-proyek)
+- [Panduan Kolaborasi Tim Git](#-panduan-kolaborasi-tim-git)
+- [Struktur Folder](#-struktur-folder)
+- [Panduan Integrasi Back-End](#-panduan-integrasi-back-end)
+- [Daftar Endpoint API](#-daftar-endpoint-api-yang-dibutuhkan)
+- [Cara Deploy](#-cara-deploy)
 
 ---
 
-## 🛠 Teknologi
+## 🛠 Tech Stack
 
 | Teknologi | Versi | Kegunaan |
 |---|---|---|
-| React | 19 | Framework UI utama |
+| React | 19 | Framework UI |
 | TypeScript | 5.x | Type safety |
-| Vite | 6.x | Build tool & dev server |
+| Vite | 6.x | Build tool |
 | Tailwind CSS | 4.x | Styling |
-| React Router | 7.x | Navigasi berbasis URL |
-| Recharts | 2.x | Grafik & chart |
-| Lucide React | latest | Icon library |
+| React Router | 7.x | Routing |
+| Recharts | 2.x | Chart & grafik |
+| qrcode | 1.x | Generate QR Code |
+| Lucide React | latest | Icon |
 
 ---
 
-## 🚀 Cara Menjalankan
+## 🚀 Cara Menjalankan Proyek
 
-### 1. Install Dependencies
+### Prasyarat
+Pastikan sudah terinstall di komputer Anda:
+- **Node.js** versi 18 atau lebih baru → [Download di nodejs.org](https://nodejs.org)
+- **Git** → [Download di git-scm.com](https://git-scm.com)
+- **VS Code** (direkomendasikan) → [Download di code.visualstudio.com](https://code.visualstudio.com)
+
+### Langkah Pertama Kali (Clone & Setup)
+
 ```bash
+# 1. Clone repository ini
+git clone https://github.com/shadafifast/TOOLTRACK.git
+
+# 2. Masuk ke folder proyek
+cd TOOLTRACK
+
+# 3. Install semua dependency
 npm install
-```
 
-### 2. Konfigurasi Environment
-Buat file `.env.local` di root project (salin dari `.env.example`):
-```bash
-cp .env.example .env.local
-```
-Edit `.env.local` dan isi URL Back-End:
-```env
-VITE_API_URL=http://localhost:8000/api
-```
-> **Catatan:** Jika Back-End belum siap, biarkan nilai default `/api`. Aplikasi berjalan dengan data dummy.
+# 4. Buat file konfigurasi environment
+# Salin file .env.example menjadi .env.local
+copy .env.example .env.local
 
-### 3. Jalankan Development Server
-```bash
+# 5. Jalankan development server
 npm run dev
 ```
-Buka browser di: **http://localhost:5173**
 
-### 4. Build untuk Production
-```bash
-npm run build
+Buka browser di **http://localhost:5173** 🎉
+
+---
+
+## 👥 Panduan Kolaborasi Tim Git
+
+> **Aturan Utama:** Jangan pernah langsung push ke branch `main`!
+> Semua perubahan harus melalui **branch terpisah** dan **Pull Request**.
+
+### 🌿 Struktur Branch
+
 ```
-Output ada di folder `dist/`.
+main          ← Branch utama yang selalu STABIL (production-ready)
+  └── develop ← Branch pengembangan aktif (opsional, bisa langsung ke main)
+        ├── feature/login-page        ← Fitur baru
+        ├── feature/qr-scanner        ← Fitur baru
+        ├── fix/bug-return-form       ← Perbaikan bug
+        └── backend/api-integration   ← Integrasi Back-End
+```
+
+---
+
+### 📌 Alur Kerja Harian (Wajib Diikuti!)
+
+#### LANGKAH 1 — Selalu update branch lokal Anda sebelum mulai kerja
+
+```bash
+# Pindah ke branch main
+git checkout main
+
+# Ambil update terbaru dari GitHub
+git pull origin main
+```
+
+#### LANGKAH 2 — Buat branch baru untuk pekerjaan Anda
+
+```bash
+# Format nama branch: feature/nama-fitur atau fix/nama-bug
+# Contoh untuk Front-End:
+git checkout -b feature/halaman-profil-karyawan
+
+# Contoh untuk Back-End:
+git checkout -b backend/api-endpoint-tools
+
+# Contoh untuk perbaikan bug:
+git checkout -b fix/qr-scanner-tidak-muncul
+```
+
+#### LANGKAH 3 — Kerjakan & simpan perubahan secara rutin
+
+```bash
+# Lihat file apa saja yang berubah
+git status
+
+# Tambahkan file yang mau di-commit
+# Cara 1: Tambah semua file sekaligus
+git add .
+
+# Cara 2: Tambah file tertentu saja (lebih aman)
+git add src/app/pages/ProfilePage.tsx
+
+# Simpan perubahan dengan pesan yang jelas
+git commit -m "feat: tambah halaman profil karyawan"
+```
+
+> **Tips menulis pesan commit yang baik:**
+> - `feat:` → fitur baru
+> - `fix:` → perbaikan bug
+> - `style:` → perubahan tampilan/CSS
+> - `refactor:` → perbaikan kode tanpa mengubah fungsi
+> - `docs:` → perubahan dokumentasi
+> - `chore:` → update dependency, konfigurasi
+
+#### LANGKAH 4 — Upload branch Anda ke GitHub
+
+```bash
+# Upload branch ke GitHub (lakukan ini setiap selesai kerja)
+git push origin feature/halaman-profil-karyawan
+```
+
+#### LANGKAH 5 — Buat Pull Request (PR) di GitHub
+
+1. Buka **https://github.com/shadafifast/TOOLTRACK**
+2. Klik tombol **"Compare & pull request"** yang muncul di bagian atas
+3. Isi judul dan deskripsi PR dengan jelas:
+   - **Judul:** `[Feature] Tambah halaman profil karyawan`
+   - **Deskripsi:** Jelaskan apa yang berubah dan kenapa
+4. Pilih reviewer (minta teman satu tim untuk review)
+5. Klik **"Create pull request"**
+
+#### LANGKAH 6 — Review & Merge
+
+- Anggota tim lain **wajib review** sebelum PR di-merge
+- Jika ada komentar/perubahan yang diminta → perbaiki, commit lagi, push lagi
+- Setelah di-approve → klik **"Merge pull request"**
+
+---
+
+### 🚨 Skenario Umum & Solusinya
+
+#### ❓ "Ada konflik saat pull/merge (conflict)"
+
+Konflik terjadi ketika 2 orang mengubah file yang sama. Cara menyelesaikannya:
+
+```bash
+# 1. Update dulu branch main
+git checkout main
+git pull origin main
+
+# 2. Kembali ke branch Anda dan merge dari main
+git checkout feature/nama-branch-anda
+git merge main
+
+# 3. Git akan menandai file yang konflik dengan tanda <<<, ===, >>>
+# Buka file tersebut di VS Code → pilih perubahan mana yang dipakai
+# VS Code punya tombol "Accept Current Change" / "Accept Incoming Change"
+
+# 4. Setelah konflik diselesaikan, commit hasilnya
+git add .
+git commit -m "fix: selesaikan konflik merge dengan main"
+git push origin feature/nama-branch-anda
+```
+
+#### ❓ "Salah commit ke branch main langsung"
+
+```bash
+# Batalkan commit terakhir (file tetap ada, hanya commit yang dibatalkan)
+git reset HEAD~1
+
+# Buat branch baru dari sini
+git checkout -b feature/perbaikan-yang-salah-branch
+
+# Lanjutkan seperti biasa
+git add .
+git commit -m "feat: ..."
+git push origin feature/perbaikan-yang-salah-branch
+```
+
+#### ❓ "Ingin melihat riwayat commit"
+
+```bash
+# Tampilkan log commit secara ringkas
+git log --oneline --graph
+
+# Tampilkan siapa yang mengubah apa
+git log --pretty=format:"%h %an %s" --graph
+```
+
+#### ❓ "Ingin membatalkan perubahan yang belum di-commit"
+
+```bash
+# Batalkan perubahan pada satu file
+git checkout -- src/app/pages/LoginPage.tsx
+
+# Batalkan SEMUA perubahan yang belum di-commit (hati-hati!)
+git checkout -- .
+```
+
+---
+
+### 📋 Checklist Sebelum Push / Pull Request
+
+Pastikan semua ini terpenuhi sebelum push ke GitHub:
+
+- [ ] Aplikasi bisa dijalankan (`npm run dev`) tanpa error di terminal
+- [ ] Build berhasil (`npm run build`) tanpa error
+- [ ] Tidak ada file `.env.local` yang ikut ter-commit (cek dengan `git status`)
+- [ ] Tidak ada folder `node_modules/` yang ikut ter-commit
+- [ ] Pesan commit sudah jelas dan deskriptif
+- [ ] Kode sudah rapi (tidak ada `console.log` debug yang tertinggal)
+
+---
+
+### 👤 Setup Git untuk Anggota Tim Baru
+
+Jalankan ini sekali saja saat pertama kali menggunakan Git di komputer:
+
+```bash
+# Isi dengan nama dan email GitHub Anda
+git config --global user.name "Nama Lengkap Anda"
+git config --global user.email "email.github.anda@gmail.com"
+
+# Verifikasi
+git config --global --list
+```
 
 ---
 
 ## 📁 Struktur Folder
 
 ```
-src/
-└── app/
-    ├── App.tsx                    # Root routing (React Router)
-    │
-    ├── types/
-    │   └── index.ts               # Tipe data TypeScript (kontrak FE & BE)
-    │
-    ├── data/
-    │   └── mockData.ts            # Data dummy untuk development
-    │
-    ├── services/                  # Layer API — YANG DIEDIT TIM BACK-END
-    │   ├── api.ts                 # Utility fetch + token management
-    │   ├── authService.ts         # Login, register, logout
-    │   ├── toolService.ts         # CRUD alat
-    │   ├── borrowService.ts       # Peminjaman & pengembalian
-    │   ├── employeeService.ts     # Data karyawan
-    │   └── index.ts               # Barrel export
-    │
-    ├── layouts/
-    │   └── DashboardLayout.tsx    # Shell layout (Sidebar + Header)
-    │
-    ├── components/
-    │   ├── layout/
-    │   │   ├── Sidebar.tsx
-    │   │   └── Header.tsx
-    │   └── shared/
-    │       └── index.tsx          # StatusBadge, QRCodeSVG, dll
-    │
-    └── pages/                     # Satu file per halaman
-        ├── LoginPage.tsx
-        ├── RegisterPage.tsx
-        ├── QuickScanPage.tsx
-        ├── DashboardPage.tsx
-        ├── ToolManagementPage.tsx
-        ├── ToolDetailPage.tsx
-        ├── QRScanPage.tsx
-        ├── BorrowConfirmPage.tsx
-        ├── ReturnConfirmPage.tsx
-        └── BorrowHistoryPage.tsx
+TOOLTRACK/
+├── public/                        # File statis (favicon, dll)
+├── src/
+│   └── app/
+│       ├── App.tsx                # Root routing (React Router)
+│       │
+│       ├── types/
+│       │   └── index.ts           # 📌 Tipe data TypeScript (kontrak FE & BE)
+│       │
+│       ├── data/
+│       │   └── mockData.ts        # Data dummy (dipakai sebelum BE siap)
+│       │
+│       ├── services/              # 🔌 Layer API — EDIT INI untuk sambungkan BE
+│       │   ├── api.ts             # Utility fetch + token management
+│       │   ├── authService.ts     # Login, register, logout
+│       │   ├── toolService.ts     # CRUD alat + QR
+│       │   ├── borrowService.ts   # Peminjaman & pengembalian
+│       │   ├── employeeService.ts # Data karyawan
+│       │   └── index.ts           # Barrel export
+│       │
+│       ├── layouts/
+│       │   └── DashboardLayout.tsx # Shell layout (Sidebar + Header)
+│       │
+│       ├── components/
+│       │   ├── layout/
+│       │   │   ├── Sidebar.tsx
+│       │   │   └── Header.tsx
+│       │   └── shared/
+│       │       ├── index.tsx       # StatusBadge, QRCodeSVG, BorrowBadge
+│       │       └── QRGenerator.tsx # 🆕 Generator QR Code yang bisa di-scan
+│       │
+│       └── pages/
+│           ├── LoginPage.tsx
+│           ├── RegisterPage.tsx
+│           ├── QuickScanPage.tsx
+│           ├── DashboardPage.tsx
+│           ├── ToolManagementPage.tsx  # ← Tambah Alat + Generate QR
+│           ├── ToolDetailPage.tsx
+│           ├── QRScanPage.tsx
+│           ├── BorrowConfirmPage.tsx
+│           ├── ReturnConfirmPage.tsx
+│           └── BorrowHistoryPage.tsx
+│
+├── .env.example                   # Template environment (commit ini)
+├── .env.local                     # Konfigurasi lokal (JANGAN di-commit!)
+├── .gitignore
+├── package.json
+├── vite.config.ts
+└── README.md
 ```
 
 ---
 
 ## 🔌 Panduan Integrasi Back-End
 
-Seluruh logika API terpusat di folder `src/app/services/`.
+### 3 Langkah Sambungkan Back-End
 
-### 3 Langkah Integrasi
-
-**Langkah 1 — Set URL Back-End di `.env.local`:**
+**Langkah 1** — Set URL Back-End di `.env.local`:
 ```env
 VITE_API_URL=http://localhost:8000/api
 ```
 
-**Langkah 2 — Buka file service, hapus MOCK DATA, uncomment REAL API:**
+**Langkah 2** — Buka file service, hapus MOCK DATA, uncomment REAL API:
 ```typescript
 // src/app/services/toolService.ts
 
 export async function getTools(params) {
-  // HAPUS blok ini:
+  // ❌ HAPUS blok mock ini:
   // const filtered = mockTools.filter(...);
   // return { data: filtered, ... };
 
-  // UNCOMMENT blok ini:
+  // ✅ UNCOMMENT blok ini:
   return apiCall(`/tools?${q.toString()}`);
 }
 ```
 
-**Langkah 3 — Restart dev server:**
-```bash
-npm run dev
-```
-Selesai! Semua halaman langsung terhubung ke Back-End.
+**Langkah 3** — Restart dev server: `npm run dev`
 
 ---
 
 ## 📡 Daftar Endpoint API yang Dibutuhkan
 
-> **Format:** JSON  
-> **Auth:** Header `Authorization: Bearer <token>` (kecuali `/auth/login` & `/auth/register`)
+> Auth Header: `Authorization: Bearer <token>` (semua endpoint kecuali login/register)
 
-### 🔐 Autentikasi
-
+### 🔐 Auth
 | Method | Endpoint | Body | Respons |
 |--------|----------|------|---------|
 | `POST` | `/auth/login` | `{ email, password }` | `{ token, user }` |
 | `POST` | `/auth/register` | `{ name, email, department, position, phone, password }` | `{ token, user }` |
 | `POST` | `/auth/logout` | — | `{ success }` |
-| `GET` | `/auth/me` | — | `Employee` |
+| `GET`  | `/auth/me` | — | `Employee` |
 
-### 🔧 Alat (Tool)
+### 🔧 Tools (Alat)
+| Method | Endpoint | Keterangan |
+|--------|----------|------------|
+| `GET`    | `/tools?search=&status=&category=&page=&limit=` | Daftar alat |
+| `GET`    | `/tools/:id` | Detail alat |
+| `POST`   | `/tools` | Tambah alat baru |
+| `PUT`    | `/tools/:id` | Update alat |
+| `DELETE` | `/tools/:id` | Hapus alat |
+| `GET`    | `/tools/:id/history` | Riwayat peminjaman alat |
 
-| Method | Endpoint | Query / Body | Respons |
-|--------|----------|------|---------|
-| `GET` | `/tools` | `?search=&status=&category=&page=&limit=` | `{ data: Tool[], total, page, limit }` |
-| `GET` | `/tools/:id` | — | `Tool` |
-| `POST` | `/tools` | `{ name, category, location, serialNumber, purchaseDate, description }` | `Tool` |
-| `PUT` | `/tools/:id` | `Partial<Tool>` | `Tool` |
-| `DELETE` | `/tools/:id` | — | `{ success: true }` |
-| `GET` | `/tools/:id/history` | — | `BorrowRecord[]` |
-| `POST` | `/tools/:id/photo` | `FormData` (multipart) | `{ photoUrl: string }` |
-| `GET` | `/tools/categories` | — | `string[]` |
+### 📦 Borrows (Peminjaman)
+| Method | Endpoint | Keterangan |
+|--------|----------|------------|
+| `GET`   | `/borrows?status=&page=&limit=` | Riwayat peminjaman |
+| `POST`  | `/borrows` | Buat peminjaman baru |
+| `PATCH` | `/borrows/:id/return` | Kembalikan alat |
+| `GET`   | `/dashboard/stats` | Statistik untuk Dasbor |
+| `GET`   | `/borrows/export?format=csv` | Ekspor laporan |
 
-### 📦 Peminjaman (Borrow)
+### 👤 Employees (Karyawan)
+| Method | Endpoint | Keterangan |
+|--------|----------|------------|
+| `GET` | `/employees?search=&department=` | Daftar karyawan |
+| `GET` | `/employees/:id` | Detail karyawan |
+| `GET` | `/employees/departments` | Daftar departemen |
 
-| Method | Endpoint | Query / Body | Respons |
-|--------|----------|------|---------|
-| `GET` | `/borrows` | `?status=&toolId=&employeeId=&search=&page=&limit=` | `{ data: BorrowRecord[], total, page, limit }` |
-| `POST` | `/borrows` | `{ toolId, employeeId, estimatedReturnDate, notes? }` | `BorrowRecord` |
-| `PATCH` | `/borrows/:id/return` | `{ condition, notes? }` | `BorrowRecord` |
-| `POST` | `/borrows/quick` | `{ toolId, employeeId }` | `BorrowRecord` |
-| `GET` | `/borrows/export` | `?format=csv` atau `?format=pdf` | `File` |
-| `GET` | `/dashboard/stats` | — | `DashboardStats` |
-
-### 👤 Karyawan (Employee)
-
-| Method | Endpoint | Query | Respons |
-|--------|----------|-------|---------|
-| `GET` | `/employees` | `?search=&department=` | `Employee[]` |
-| `GET` | `/employees/:id` | — | `Employee` |
-| `GET` | `/employees/departments` | — | `string[]` |
-
-### 📐 Format Data (Contoh Objek JSON)
-
-```json
-// Tool
-{
-  "id": "TL-001",
-  "name": "Fluke LinkIQ Cable Analyzer",
-  "category": "Network Equipment",
-  "location": "IT Storage A",
-  "status": "available",
-  "lastUser": "Ahmad Rifai",
-  "lastScanTime": "2024-01-15 09:23",
-  "serialNumber": "FLK-LQ-2023-001",
-  "purchaseDate": "2023-03-15",
-  "description": "..."
-}
-
-// BorrowRecord
-{
-  "id": "BR-001",
-  "toolId": "TL-001",
-  "toolName": "Fluke LinkIQ Cable Analyzer",
-  "employeeId": "EMP001",
-  "employeeName": "Ahmad Rifai",
-  "department": "IT Support",
-  "borrowTime": "2024-01-15 09:23",
-  "returnTime": null,
-  "duration": null,
-  "status": "active",
-  "condition": null,
-  "notes": null
-}
-```
-
-> Lihat `src/app/types/index.ts` untuk format lengkap semua tipe data.
+> 📌 Lihat `src/app/types/index.ts` untuk format lengkap semua objek data.
 
 ---
 
 ## 🌐 Rute URL Aplikasi
 
-| URL | Halaman | Perlu Login |
-|-----|---------|-------------|
-| `/login` | Halaman Login | ❌ |
-| `/register` | Halaman Daftar Akun | ❌ |
+| URL | Halaman | Login |
+|-----|---------|-------|
+| `/login` | Login | ❌ |
+| `/register` | Daftar Akun | ❌ |
 | `/quick-scan` | Scan QR Tanpa Login | ❌ |
-| `/dashboard` | Dasbor Utama | ✅ |
-| `/tools` | Daftar & Manajemen Alat | ✅ |
+| `/dashboard` | Dasbor | ✅ |
+| `/tools` | Manajemen Alat + Generate QR | ✅ |
 | `/tools/:toolId` | Detail Alat | ✅ |
 | `/qr-scan` | Scanner QR | ✅ |
 | `/history` | Riwayat Peminjaman | ✅ |
-| `/borrow-confirm/:toolId` | Konfirmasi Peminjaman | ✅ |
-| `/return-confirm/:toolId` | Konfirmasi Pengembalian | ✅ |
+| `/borrow-confirm/:toolId` | Konfirmasi Pinjam | ✅ |
+| `/return-confirm/:toolId` | Konfirmasi Kembali | ✅ |
 
 ---
 
 ## 🚢 Cara Deploy
 
-### Static Hosting (Netlify / Vercel)
 ```bash
+# Build untuk production
 npm run build
-# Upload folder dist/ ke hosting pilihan Anda
+
+# Output ada di folder dist/
+# Upload folder dist/ ke hosting pilihan (Netlify, Vercel, VPS)
 ```
-Set environment variable `VITE_API_URL` di dashboard hosting.
 
-### Nginx
-```nginx
-server {
-    listen 80;
-    root /var/www/tooltrack/dist;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    location /api {
-        proxy_pass http://localhost:8000;
-    }
-}
-```
+Set environment variable `VITE_API_URL` di dashboard hosting sesuai URL server production.
 
 ---
 
-## 👥 Tim
+## 👥 Tim Pengembang — Magang PT Semen Padang
 
-| Peran | Tanggung Jawab |
-|-------|----------------|
-| **Front-End** | Tampilan UI, komponen React, routing |
-| **Back-End** | REST API, database, autentikasi |
+| Nama | Peran | Branch Utama |
+|------|-------|--------------|
+| Shada | Front-End Developer | `feature/frontend-*` |
+| *(Nama teman)* | Back-End Developer | `backend/*` |
+| *(Nama teman)* | Back-End / AI | `backend/*` |
 
-> **Catatan untuk Tim Back-End:** Baca `src/app/services/` dan `src/app/types/index.ts` untuk memahami kontrak data yang diharapkan Front-End.
+---
+
+> **💡 Ada pertanyaan?** Hubungi Front-End Lead atau buat Issue di GitHub repository ini.
