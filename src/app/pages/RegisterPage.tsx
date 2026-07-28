@@ -1,8 +1,8 @@
-// ─── Page: Register ─────────────────────────────────────────────────────────────
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { QrCode, Eye, CheckCircle, AlertTriangle } from "lucide-react";
-import { employees } from "../data/mockData";
+import { QrCode, Eye, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { getDepartments } from "../services/employeeService";
+import { register } from "../services/authService";
 
 export function RegisterPage() {
   const navigate = useNavigate();
@@ -15,14 +15,35 @@ export function RegisterPage() {
   const [confirmPass, setConfirmPass] = useState("");
   const [showPass, setShowPass] = useState(false);
   const [done, setDone] = useState(false);
+  
+  const [depts, setDepts] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  // TODO: Ambil daftar departemen dari API GET /api/departments
-  const depts = [...new Set(employees.map(e => e.department))];
+  useEffect(() => {
+    getDepartments().then(setDepts).catch(console.error);
+  }, []);
+
   const passMatch = pass === confirmPass;
-  const canSubmit = name && email && dept && position && pass && passMatch;
+  const canSubmit = name && email && dept && position && pass && passMatch && pass.length >= 6;
 
-  // TODO: Sambungkan ke API POST /api/auth/register
-  const handleRegister = () => { if (canSubmit) setDone(true); };
+  const handleRegister = async () => { 
+    if (!canSubmit) return;
+    setLoading(true);
+    try {
+      await register({
+        name,
+        email,
+        department: dept,
+        position,
+        phone,
+        password: pass
+      });
+      setDone(true);
+    } catch (err: any) {
+      alert(err.message || "Gagal melakukan registrasi.");
+    }
+    setLoading(false);
+  };
 
   if (done) return (
     <div className="min-h-screen bg-[#F1F5F9] flex items-center justify-center p-4">
@@ -65,6 +86,9 @@ export function RegisterPage() {
               <select value={dept} onChange={e => setDept(e.target.value)} className="w-full px-3.5 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50 text-slate-600">
                 <option value="">Pilih departemen</option>
                 {depts.map(d => <option key={d}>{d}</option>)}
+                <option value="IT">IT</option>
+                <option value="Network">Network</option>
+                <option value="Operations">Operations</option>
               </select>
             </div>
             <div>
@@ -78,7 +102,7 @@ export function RegisterPage() {
             <div>
               <label className="text-xs font-semibold text-slate-600 block mb-1.5">Password</label>
               <div className="relative">
-                <input type={showPass ? "text" : "password"} value={pass} onChange={e => setPass(e.target.value)} placeholder="Min. 8 karakter" className="w-full px-3.5 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50 placeholder:text-slate-300 pr-9" />
+                <input type={showPass ? "text" : "password"} value={pass} onChange={e => setPass(e.target.value)} placeholder="Min. 6 karakter" className="w-full px-3.5 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50 placeholder:text-slate-300 pr-9" />
                 <button type="button" onClick={() => setShowPass(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
                   <Eye size={14} className={showPass ? "" : "opacity-50"} />
                 </button>
@@ -98,7 +122,8 @@ export function RegisterPage() {
             </div>
           </div>
 
-          <button onClick={handleRegister} disabled={!canSubmit} className="w-full bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all shadow-sm shadow-blue-600/20">
+          <button onClick={handleRegister} disabled={!canSubmit || loading} className="w-full flex justify-center items-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all shadow-sm shadow-blue-600/20">
+            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
             Buat Akun
           </button>
         </div>

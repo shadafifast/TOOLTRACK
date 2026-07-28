@@ -1,20 +1,26 @@
-// ─── Page: Login ────────────────────────────────────────────────────────────────
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { QrCode, Eye, Scan } from "lucide-react";
+import { QrCode, Eye, Scan, Loader2 } from "lucide-react";
+import { login } from "../services/authService";
 
 export function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPass, setShowPass] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // TODO: Sambungkan ke API POST /api/auth/login untuk autentikasi nyata
-  // const handleLogin = async () => {
-  //   const res = await fetch('/api/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) });
-  //   const data = await res.json();
-  //   if (data.token) { localStorage.setItem('token', data.token); navigate('/dashboard'); }
-  // };
+  const handleLogin = async () => {
+    if (!email || !password) return;
+    setLoading(true);
+    try {
+      await login({ email, password });
+      navigate('/dashboard');
+    } catch (err: any) {
+      alert(err.message || "Email atau password salah.");
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#F1F5F9] flex items-center justify-center p-4">
@@ -64,9 +70,11 @@ export function LoginPage() {
           </div>
 
           <button
-            onClick={() => navigate("/dashboard")}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-[0.98] transition-all shadow-sm shadow-blue-600/20 mt-1"
+            onClick={handleLogin}
+            disabled={loading || !email || !password}
+            className="w-full flex justify-center items-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm shadow-blue-600/20 mt-1"
           >
+            {loading ? <Loader2 size={15} className="animate-spin" /> : null}
             Masuk
           </button>
 

@@ -1,24 +1,215 @@
-// ─── Page: Tool Detail ──────────────────────────────────────────────────────────
-// Halaman ini menggunakan useParams() untuk mendapatkan ID alat dari URL (/tools/:toolId)
-import { useState } from "react";
+import { useState, useEffect, useId } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   ChevronLeft, Download, Plus, Edit2, ArrowUpRight, ArrowDownLeft,
-  Clock, Package, CheckCircle, AlertTriangle, RefreshCw
+  Clock, Package, CheckCircle, AlertTriangle, RefreshCw, Loader2,
+  Save, X, Camera
 } from "lucide-react";
-import { tools, borrowHistory } from "../data/mockData";
 import { StatusBadge, QRCodeSVG, BorrowBadge } from "../components/shared";
+import { getToolById, updateTool, uploadToolPhoto, getToolCategories } from "../services/toolService";
+import { getToolBorrowHistory } from "../services/borrowService";
+import type { Tool } from "../types";
 
+// ─── Modal Edit Alat (inline di halaman detail) ──────────────────────────────
+function EditToolModal({ tool, onClose, onSaved }: { tool: Tool; onClose: () => void; onSaved: (updated: Tool) => void }) {
+  const uid = useId();
+  const [cats, setCats] = useState<string[]>([]);
+
+  const [nama,   setNama]   = useState(tool.name);
+  const [seri,   setSeri]   = useState(tool.serialNumber);
+  const [kat,    setKat]    = useState(tool.category);
+  const [lokasi, setLokasi] = useState(tool.location);
+  const [desk,   setDesk]   = useState(tool.description || "");
+  const [status, setStatus] = useState(tool.status);
+  const [tgl,    setTgl]    = useState(tool.purchaseDate ? tool.purchaseDate.slice(0, 10) : "");
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    getToolCategories().then(setCats).catch(console.error);
+  }, []);
+
+  const canSubmit = nama.trim() && seri.trim() && lokasi.trim();
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setSaving(true);
+    try {
+      const updated = await updateTool(tool.id, {
+        name: nama, serialNumber: seri, category: kat,
+        location: lokasi, description: desk,
+        status: status as any,
+        purchaseDate: tgl || undefined,
+      });
+      onSaved(updated);
+      onClose();
+    } catch (err: any) {
+      alert(err.message || "Gagal menyimpan perubahan.");
+    }
+    setSaving(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-white z-10">
+          <div>
+            <h2 className="font-semibold text-slate-900 flex items-center gap-2">
+              <Edit2 size={16} className="text-blue-600" /> Edit Alat
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5 font-mono">{tool.id}</p>
+          </div>
+          <button onClick={onClose} className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg"><X size={17} /></button>
+        </div>
+        <div className="p-5 space-y-4">
+          <div>
+            <label htmlFor={`${uid}-nama`} className="text-xs font-semibold text-slate-600 block mb-1.5">Nama Alat *</label>
+            <input id={`${uid}-nama`} type="text" value={nama} onChange={e => setNama(e.target.value)} className="w-full px-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor={`${uid}-seri`} className="text-xs font-semibold text-slate-600 block mb-1.5">Nomor Seri *</label>
+              <input id={`${uid}-seri`} type="text" value={seri} onChange={e => setSeri(e.target.value)} className="w-full px-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50" />
+            </div>
+            <div>
+              <label htmlFor={`${uid}-kat`} className="text-xs font-semibold text-slate-600 block mb-1.5">Kategori</label>
+              <select id={`${uid}-kat`} value={kat} onChange={e => setKat(e.target.value)} className="w-full px-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none bg-slate-50 text-slate-700">
+                {cats.map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label htmlFor={`${uid}-lokasi`} className="text-xs font-semibold text-slate-600 block mb-1.5">Lokasi Penyimpanan *</label>
+              <input id={`${uid}-lokasi`} type="text" value={lokasi} onChange={e => setLokasi(e.target.value)} className="w-full px-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50" />
+            </div>
+            <div>
+              <label htmlFor={`${uid}-status`} className="text-xs font-semibold text-slate-600 block mb-1.5">Status</label>
+              <select id={`${uid}-status`} value={status} onChange={e => setStatus(e.target.value as any)} className="w-full px-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none bg-slate-50 text-slate-700">
+                <option value="available">Tersedia</option>
+                <option value="borrowed">Dipinjam</option>
+                <option value="overdue">Terlambat</option>
+                <option value="damaged">Rusak</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label htmlFor={`${uid}-tgl`} className="text-xs font-semibold text-slate-600 block mb-1.5">Tanggal Pembelian</label>
+            <input id={`${uid}-tgl`} type="date" value={tgl} onChange={e => setTgl(e.target.value)} className="w-full px-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50" />
+          </div>
+          <div>
+            <label htmlFor={`${uid}-desk`} className="text-xs font-semibold text-slate-600 block mb-1.5">Deskripsi</label>
+            <textarea id={`${uid}-desk`} rows={3} value={desk} onChange={e => setDesk(e.target.value)} className="w-full px-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50 resize-none" />
+          </div>
+        </div>
+        <div className="flex justify-end gap-2.5 px-5 pb-5 pt-2 border-t border-border">
+          <button onClick={onClose} disabled={saving} className="px-4 py-2 text-sm font-medium text-slate-600 border border-border rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-40">Batal</button>
+          <button onClick={handleSubmit} disabled={!canSubmit || saving} className="flex items-center gap-2 px-5 py-2 text-sm font-semibold bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-40 transition-colors">
+            {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />} Simpan Perubahan
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Halaman Detail Alat ─────────────────────────────────────────────────────
 export function ToolDetailPage() {
   const navigate = useNavigate();
   const { toolId } = useParams<{ toolId: string }>();
   const [tab, setTab] = useState<"details"|"history"|"maintenance">("details");
 
-  // TODO: Ganti dengan API GET /api/tools/:toolId untuk mengambil data alat dari server
-  const tool = tools.find(t => t.id === toolId);
+  const [tool, setTool] = useState<Tool | null>(null);
+  const [hist, setHist] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showEdit, setShowEdit] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
-  // TODO: Ambil riwayat dari API GET /api/tools/:toolId/history
-  const hist = tool ? borrowHistory.filter(b => b.toolId === tool.id) : [];
+  const loadData = () => {
+    if (!toolId) return;
+    setLoading(true);
+    Promise.all([
+      getToolById(toolId).catch(() => null),
+      getToolBorrowHistory(toolId).catch(() => [])
+    ]).then(([t, h]) => {
+      setTool(t);
+      setHist(h);
+      setLoading(false);
+    });
+  };
+
+  useEffect(() => { loadData(); }, [toolId]);
+
+  // ── Unduh QR Code sebagai PNG ────────────────────────────────────────────
+  const handleDownloadQR = () => {
+    if (!tool) return;
+    const wrapper = document.getElementById(`qr-svg-${tool.id}`);
+    if (!wrapper) return;
+    const canvas = wrapper.querySelector("canvas");
+    const svg = wrapper.querySelector("svg");
+    const scale = 4;
+    if (canvas) {
+      const out = document.createElement("canvas");
+      out.width = canvas.width * scale;
+      out.height = canvas.height * scale;
+      const ctx = out.getContext("2d");
+      if (ctx) {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, out.width, out.height);
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(canvas, 0, 0, out.width, out.height);
+        const a = document.createElement("a");
+        a.href = out.toDataURL("image/png");
+        a.download = `QR-${tool.id}.png`;
+        a.click();
+      }
+    } else if (svg) {
+      const size = svg.getBoundingClientRect().width || 144;
+      const outCanvas = document.createElement("canvas");
+      outCanvas.width = size * scale;
+      outCanvas.height = size * scale;
+      const ctx = outCanvas.getContext("2d");
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const img = new Image();
+      img.onload = () => {
+        if (ctx) {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, outCanvas.width, outCanvas.height);
+          ctx.drawImage(img, 0, 0, outCanvas.width, outCanvas.height);
+          const a = document.createElement("a");
+          a.href = outCanvas.toDataURL("image/png");
+          a.download = `QR-${tool.id}.png`;
+          a.click();
+        }
+        URL.revokeObjectURL(url);
+      };
+      img.src = url;
+    }
+  };
+
+  // ── Upload Foto Alat ─────────────────────────────────────────────────────
+  const handleUploadPhoto = () => {
+    if (!tool) return;
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      setUploadingPhoto(true);
+      try {
+        const photoUrl = await uploadToolPhoto(tool.id, file);
+        setTool(prev => prev ? { ...prev, photoUrl } : prev);
+      } catch (err: any) {
+        alert(err.message || "Gagal mengunggah foto.");
+      }
+      setUploadingPhoto(false);
+    };
+    input.click();
+  };
+
+  if (loading) return <div className="p-10 flex justify-center"><Loader2 className="animate-spin text-blue-500 w-10 h-10" /></div>;
 
   if (!tool) return (
     <div className="p-6 flex items-center justify-center min-h-40">
@@ -36,6 +227,7 @@ export function ToolDetailPage() {
       </button>
 
       <div className="grid grid-cols-3 gap-5">
+        {/* Kolom kiri: QR & Foto */}
         <div className="space-y-4">
           <div className="bg-white rounded-xl border border-border p-5 shadow-sm flex flex-col items-center">
             <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4">Kode QR</div>
@@ -44,35 +236,47 @@ export function ToolDetailPage() {
               <div className="font-mono text-sm font-bold text-slate-700">{tool.id}</div>
               <div className="text-xs text-slate-400 mt-0.5 font-mono">{tool.serialNumber}</div>
             </div>
-            {/* TODO: Sambungkan ke fungsi download QR dari Back-End */}
-            <button className="mt-4 flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-xs font-semibold hover:bg-blue-700 transition-colors w-full justify-center">
+            <button onClick={handleDownloadQR} className="mt-4 flex items-center gap-2 bg-blue-600 text-white px-4 py-2.5 rounded-xl text-xs font-semibold hover:bg-blue-700 transition-colors w-full justify-center">
               <Download size={14} /> Unduh Kode QR
             </button>
           </div>
+
           <div className="bg-white rounded-xl border border-border p-4 shadow-sm">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Foto</div>
-            <div className="aspect-video bg-slate-50 rounded-lg flex items-center justify-center border border-dashed border-slate-200">
-              <div className="text-center text-slate-300">
-                <Package size={28} className="mx-auto mb-1.5 opacity-50" />
-                <div className="text-xs">Belum ada foto</div>
-              </div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Foto Alat</div>
+            <div className="aspect-video bg-slate-50 rounded-lg flex items-center justify-center border border-dashed border-slate-200 overflow-hidden">
+              {tool.photoUrl ? (
+                <img src={tool.photoUrl} alt={tool.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="text-center text-slate-300">
+                  <Package size={28} className="mx-auto mb-1.5 opacity-50" />
+                  <div className="text-xs">Belum ada foto</div>
+                </div>
+              )}
             </div>
-            <button className="mt-2.5 flex items-center gap-1.5 text-xs border border-border text-slate-500 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors w-full justify-center font-medium">
-              <Plus size={12} /> Unggah Foto
+            <button onClick={handleUploadPhoto} disabled={uploadingPhoto} className="mt-2.5 flex items-center gap-1.5 text-xs border border-border text-slate-500 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors w-full justify-center font-medium disabled:opacity-50">
+              {uploadingPhoto ? <Loader2 size={12} className="animate-spin" /> : <Camera size={12} />}
+              {uploadingPhoto ? "Mengunggah..." : tool.photoUrl ? "Ganti Foto" : "Unggah Foto"}
             </button>
           </div>
         </div>
 
+        {/* Kolom kanan: Info & Tab */}
         <div className="col-span-2 space-y-4">
           <div className="bg-white rounded-xl border border-border p-5 shadow-sm">
             <div className="flex items-start justify-between">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">{tool.name}</h2>
-                <p className="text-sm text-slate-500 mt-1 leading-relaxed">{tool.description}</p>
+                <p className="text-sm text-slate-500 mt-1 leading-relaxed">{tool.description || <span className="italic text-slate-300">Tidak ada deskripsi</span>}</p>
               </div>
               <div className="flex items-center gap-2 ml-4">
                 <StatusBadge status={tool.status} />
-                <button className="p-1.5 text-slate-300 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"><Edit2 size={15} /></button>
+                <button
+                  onClick={() => setShowEdit(true)}
+                  title="Edit alat"
+                  className="p-1.5 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                >
+                  <Edit2 size={15} />
+                </button>
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-border">
@@ -81,8 +285,8 @@ export function ToolDetailPage() {
                 { l: "Nomor Seri",         v: tool.serialNumber,  mono: true },
                 { l: "Kategori",           v: tool.category,      mono: false },
                 { l: "Lokasi Penyimpanan", v: tool.location,      mono: false },
-                { l: "Tanggal Pembelian",  v: tool.purchaseDate,  mono: false },
-                { l: "Scan Terakhir",      v: tool.lastScanTime,  mono: false },
+                { l: "Tanggal Pembelian",  v: tool.purchaseDate ? new Date(tool.purchaseDate).toLocaleDateString() : "-", mono: false },
+                { l: "Scan Terakhir",      v: tool.lastScanTime || "-", mono: false },
               ].map((f, i) => (
                 <div key={i}>
                   <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{f.l}</div>
@@ -99,8 +303,8 @@ export function ToolDetailPage() {
           }`}>
             <div>
               <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Pengguna Terakhir</div>
-              <div className="text-sm font-bold text-slate-800">{tool.lastUser}</div>
-              <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1"><Clock size={10} />{tool.lastScanTime}</div>
+              <div className="text-sm font-bold text-slate-800">{tool.lastUser || "-"}</div>
+              <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1"><Clock size={10} />{tool.lastScanTime || "-"}</div>
             </div>
             <div className="flex gap-2">
               {tool.status === "available" && (
@@ -116,6 +320,7 @@ export function ToolDetailPage() {
             </div>
           </div>
 
+          {/* Tab: Statistik / Riwayat / Pemeliharaan */}
           <div className="bg-white rounded-xl border border-border shadow-sm overflow-hidden">
             <div className="flex border-b border-border bg-slate-50/50">
               {(["details","history","maintenance"] as const).map(t => (
@@ -154,8 +359,8 @@ export function ToolDetailPage() {
                           <span className="text-xs font-semibold text-slate-800">{rec.employeeName}</span>
                           <BorrowBadge status={rec.status} />
                         </div>
-                        <div className="text-xs text-slate-400 mt-0.5">Dipinjam: {rec.borrowTime}</div>
-                        {rec.returnTime && <div className="text-xs text-slate-400">Dikembalikan: {rec.returnTime} · {rec.duration}</div>}
+                        <div className="text-xs text-slate-400 mt-0.5">Dipinjam: {new Date(rec.borrowTime).toLocaleString()}</div>
+                        {rec.returnTime && <div className="text-xs text-slate-400">Dikembalikan: {new Date(rec.returnTime).toLocaleString()}</div>}
                         {rec.notes && <div className="text-xs text-slate-400 italic mt-0.5">{rec.notes}</div>}
                       </div>
                     </div>
@@ -173,6 +378,15 @@ export function ToolDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal edit */}
+      {showEdit && (
+        <EditToolModal
+          tool={tool}
+          onClose={() => setShowEdit(false)}
+          onSaved={(updated) => setTool(updated)}
+        />
+      )}
     </div>
   );
 }
