@@ -33,10 +33,10 @@ export function BorrowConfirmPage() {
 
   const emp = employeeList.find(e => e.id === empId) || employeeList[0];
 
-  if (!tool) return (
-    <div className="p-6 text-center text-slate-400">
-      <p>Alat tidak ditemukan.</p>
-      <button onClick={() => navigate(-1)} className="mt-2 text-xs text-blue-600">← Kembali</button>
+  if (!tool || !emp) return (
+    <div className="p-6 text-center text-slate-400 flex flex-col items-center justify-center h-40">
+      <Loader2 size={24} className="animate-spin mb-2" />
+      <p>Memuat data...</p>
     </div>
   );
 
