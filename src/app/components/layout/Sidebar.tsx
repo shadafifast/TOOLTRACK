@@ -1,10 +1,23 @@
 // ─── Layout: Sidebar ───────────────────────────────────────────────────────────
+import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { LayoutDashboard, Wrench, QrCode, History, LogOut } from "lucide-react";
+import { getMe, logout } from "../../services/authService";
+import type { Employee } from "../../types";
 
 export function Sidebar() {
   const navigate  = useNavigate();
   const location  = useLocation();
+  const [user, setUser] = useState<Employee | null>(null);
+
+  useEffect(() => {
+    getMe().then(setUser).catch(console.error);
+  }, []);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
 
   const nav = [
     { path: "/dashboard", label: "Dasbor",             icon: <LayoutDashboard size={17} /> },
@@ -50,17 +63,16 @@ export function Sidebar() {
       </nav>
 
       {/* User Profile & Logout */}
-      {/* TODO: Ganti data di bawah ini dengan data user yang sedang login dari Auth Context */}
       <div className="px-3 py-3.5 border-t border-slate-800">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white text-xs font-bold">RP</span>
+            <span className="text-white text-xs font-bold">{user ? user.avatar : "..."}</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-white text-xs font-semibold truncate">Reza Pratama</div>
-            <div className="text-slate-500 text-xs">Manajer IT</div>
+            <div className="text-white text-xs font-semibold truncate">{user ? user.name : "Memuat..."}</div>
+            <div className="text-slate-500 text-[10px] truncate">{user ? user.position : ""}</div>
           </div>
-          <button onClick={() => navigate("/login")} title="Keluar" className="text-slate-600 hover:text-red-400 transition-colors p-1">
+          <button onClick={handleLogout} title="Keluar" className="text-slate-600 hover:text-red-400 transition-colors p-1">
             <LogOut size={15} />
           </button>
         </div>

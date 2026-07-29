@@ -17,8 +17,8 @@ exports.register = async (data) => {
     name: data.name,
     email: data.email,
     password_hash,
-    department_id: parseInt(data.department), 
-    position: data.position,
+    department_id: 1, 
+    position: 'Karyawan',
     phone: data.phone || null,
     avatar: initials
   };

@@ -17,6 +17,11 @@ export async function getEmployeeById(id: string): Promise<Employee | null> {
   return apiCall<Employee>(`/employees/${id}`);
 }
 
-export async function getDepartments(): Promise<string[]> {
-  return apiCall<string[]>("/employees/departments");
+export interface Department {
+  id: number;
+  name: string;
+}
+
+export async function getDepartments(): Promise<Department[]> {
+  return apiCall<Department[]>("/employees/departments");
 }
