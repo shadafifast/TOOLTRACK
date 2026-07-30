@@ -11,10 +11,10 @@ exports.findById = async (id) => {
 };
 
 exports.createUser = async (userData) => {
-  const { id, name, email, password_hash, department_id, position, phone, avatar } = userData;
+  const { id, name, email, password_hash, department_id, position, phone, avatar, role } = userData;
   const [result] = await pool.execute(
-    'INSERT INTO users (id, name, email, password_hash, department_id, position, phone, avatar) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, name, email, password_hash, department_id, position, phone, avatar]
+    'INSERT INTO users (id, name, email, role, password_hash, department_id, position, phone, avatar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, name, email, role, password_hash, department_id, position, phone, avatar]
   );
   return result;
 };

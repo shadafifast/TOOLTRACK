@@ -7,7 +7,8 @@ import {
 import { StatusBadge, QRCodeSVG } from "../components/shared";
 import { QRGenerator, useQRDownload } from "../components/shared/QRGenerator";
 import { getTools, createTool, deleteTool, updateTool, getToolCategories, getNextId } from "../services/toolService";
-import type { Tool } from "../types";
+import { getMe } from "../services/authService";
+import type { Tool, Employee } from "../types";
 
 // ─── Modal: Tambah Alat ───────────────────────────────────────────────────────
 function AddToolModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
@@ -270,6 +271,7 @@ export function ToolManagementPage() {
   const [total, setTotal] = useState(0);
   const [cats, setCats] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<Employee | null>(null);
 
   const fetchTools = async () => {
     setLoading(true);
@@ -285,6 +287,7 @@ export function ToolManagementPage() {
 
   useEffect(() => {
     getToolCategories().then(setCats).catch(console.error);
+    getMe().then(setUser).catch(console.error);
   }, []);
 
   useEffect(() => {
@@ -326,9 +329,11 @@ export function ToolManagementPage() {
           </select>
           <div className="flex items-center gap-2 ml-auto">
             <span className="text-xs text-slate-400">{total} alat</span>
-            <button onClick={() => setModal(true)} className="flex items-center gap-1.5 bg-blue-600 text-white px-3.5 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700">
-              <Plus size={13} /> Tambah Alat
-            </button>
+            {user?.role === 'admin' && (
+              <button onClick={() => setModal(true)} className="flex items-center gap-1.5 bg-blue-600 text-white px-3.5 py-2 rounded-lg text-xs font-semibold hover:bg-blue-700">
+                <Plus size={13} /> Tambah Alat
+              </button>
+            )}
           </div>
         </div>
 
@@ -375,8 +380,12 @@ export function ToolManagementPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-0.5">
                         <button onClick={() => navigate(`/tools/${t.id}`)} title="Lihat detail" className="p-1.5 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-md transition-colors"><Eye size={14} /></button>
-                        <button onClick={() => setEditTool(t)} title="Edit alat" className="p-1.5 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"><Edit2 size={14} /></button>
-                        <button onClick={() => handleDelete(t.id, t.name)} title="Hapus alat" className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><Trash2 size={14} /></button>
+                        {user?.role === 'admin' && (
+                          <>
+                            <button onClick={() => setEditTool(t)} title="Edit alat" className="p-1.5 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded-md transition-colors"><Edit2 size={14} /></button>
+                            <button onClick={() => handleDelete(t.id, t.name)} title="Hapus alat" className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><Trash2 size={14} /></button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>

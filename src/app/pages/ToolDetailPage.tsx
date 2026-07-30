@@ -1,14 +1,15 @@
 import { useState, useEffect, useId } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
-  ChevronLeft, Download, Plus, Edit2, ArrowUpRight, ArrowDownLeft,
+  ChevronLeft, Download, Edit2, ArrowUpRight, ArrowDownLeft,
   Clock, Package, CheckCircle, AlertTriangle, RefreshCw, Loader2,
   Save, X, Camera
 } from "lucide-react";
 import { StatusBadge, QRCodeSVG, BorrowBadge } from "../components/shared";
 import { getToolById, updateTool, uploadToolPhoto, getToolCategories } from "../services/toolService";
 import { getToolBorrowHistory } from "../services/borrowService";
-import type { Tool } from "../types";
+import { getMe } from "../services/authService";
+import type { Tool, Employee } from "../types";
 
 // ─── Modal Edit Alat (inline di halaman detail) ──────────────────────────────
 function EditToolModal({ tool, onClose, onSaved }: { tool: Tool; onClose: () => void; onSaved: (updated: Tool) => void }) {
@@ -123,16 +124,19 @@ export function ToolDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showEdit, setShowEdit] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [user, setUser] = useState<Employee | null>(null);
 
   const loadData = () => {
     if (!toolId) return;
     setLoading(true);
     Promise.all([
       getToolById(toolId).catch(() => null),
-      getToolBorrowHistory(toolId).catch(() => [])
-    ]).then(([t, h]) => {
+      getToolBorrowHistory(toolId).catch(() => []),
+      getMe().catch(() => null)
+    ]).then(([t, h, u]) => {
       setTool(t);
       setHist(h);
+      setUser(u);
       setLoading(false);
     });
   };
@@ -253,10 +257,12 @@ export function ToolDetailPage() {
                 </div>
               )}
             </div>
-            <button onClick={handleUploadPhoto} disabled={uploadingPhoto} className="mt-2.5 flex items-center gap-1.5 text-xs border border-border text-slate-500 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors w-full justify-center font-medium disabled:opacity-50">
-              {uploadingPhoto ? <Loader2 size={12} className="animate-spin" /> : <Camera size={12} />}
-              {uploadingPhoto ? "Mengunggah..." : tool.photoUrl ? "Ganti Foto" : "Unggah Foto"}
-            </button>
+            {user?.role === 'admin' && (
+              <button onClick={handleUploadPhoto} disabled={uploadingPhoto} className="mt-2.5 flex items-center gap-1.5 text-xs border border-border text-slate-500 px-3 py-2 rounded-lg hover:bg-slate-50 transition-colors w-full justify-center font-medium disabled:opacity-50">
+                {uploadingPhoto ? <Loader2 size={12} className="animate-spin" /> : <Camera size={12} />}
+                {uploadingPhoto ? "Mengunggah..." : tool.photoUrl ? "Ganti Foto" : "Unggah Foto"}
+              </button>
+            )}
           </div>
         </div>
 
@@ -270,13 +276,15 @@ export function ToolDetailPage() {
               </div>
               <div className="flex items-center gap-2 ml-4">
                 <StatusBadge status={tool.status} />
-                <button
-                  onClick={() => setShowEdit(true)}
-                  title="Edit alat"
-                  className="p-1.5 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
-                >
-                  <Edit2 size={15} />
-                </button>
+                {user?.role === 'admin' && (
+                  <button
+                    onClick={() => setShowEdit(true)}
+                    title="Edit alat"
+                    className="p-1.5 text-slate-300 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                  >
+                    <Edit2 size={15} />
+                  </button>
+                )}
               </div>
             </div>
             <div className="grid grid-cols-3 gap-4 mt-5 pt-4 border-t border-border">

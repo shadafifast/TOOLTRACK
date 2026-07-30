@@ -21,6 +21,7 @@ export interface Tool {
   serialNumber: string;
   purchaseDate: string;
   description: string;
+  photoUrl?: string;
 }
 
 export interface Employee {
@@ -33,6 +34,7 @@ export interface Employee {
   avatar: string;
   activeBorrows: number;
   totalBorrows: number;
+  role?: 'admin' | 'user';
 }
 
 export interface BorrowRecord {

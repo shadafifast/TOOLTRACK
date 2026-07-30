@@ -19,3 +19,11 @@ exports.protect = (req, res, next) => {
     return errorResponse(res, 'Token tidak valid', 401);
   }
 };
+
+exports.authorizeAdmin = (req, res, next) => {
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    return errorResponse(res, 'Akses ditolak. Hanya admin yang diizinkan.', 403);
+  }
+};

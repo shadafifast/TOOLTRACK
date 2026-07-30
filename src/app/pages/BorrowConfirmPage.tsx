@@ -14,7 +14,13 @@ export function BorrowConfirmPage() {
   const navigate = useNavigate();
   const { toolId } = useParams<{ toolId: string }>();
   const [empId, setEmpId] = useState("");
-  const [retDate, setRetDate] = useState("2024-01-22");
+  
+  // Tanggal pengembalian default 7 hari dari sekarang
+  const defaultRetDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const [retDate, setRetDate] = useState(defaultRetDate);
+  
+  // Tanggal/waktu pinjam saat ini
+  const currentDateTime = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
   const [notes, setNotes] = useState("");
   const [done, setDone] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -101,7 +107,7 @@ export function BorrowConfirmPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-bold text-slate-600 block mb-1.5">Tanggal/Waktu Pinjam</label>
-                <input type="datetime-local" defaultValue="2024-01-15T10:30" readOnly className="w-full px-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none bg-slate-50 text-slate-500" />
+                <input type="datetime-local" value={currentDateTime} readOnly className="w-full px-3 py-2.5 text-sm border border-border rounded-xl focus:outline-none bg-slate-50 text-slate-500" />
               </div>
               <div>
                 <label className="text-xs font-bold text-slate-600 block mb-1.5">Estimasi Pengembalian</label>

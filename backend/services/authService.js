@@ -2,6 +2,19 @@ const userModel = require('../models/userModel');
 const { hashPassword, comparePassword, generateToken } = require('../helpers/auth');
 
 exports.register = async (data) => {
+  const emailLower = data.email.toLowerCase();
+  let role = 'user';
+  let position = 'Magang';
+  if (emailLower.endsWith('@smig.com')) {
+    role = 'admin';
+    position = 'Teknisi';
+  } else if (emailLower.endsWith('@gmail.com') || emailLower.endsWith('@outlook.com')) {
+    role = 'user';
+    position = 'Magang';
+  } else {
+    throw { statusCode: 400, message: 'Hanya akun @smig.com untuk admin atau @gmail.com dan @outlook.com untuk user yang diperbolehkan.' };
+  }
+
   const existingUser = await userModel.findByEmail(data.email);
   if (existingUser) {
     throw { statusCode: 400, message: 'Email sudah terdaftar' };
@@ -18,17 +31,18 @@ exports.register = async (data) => {
     email: data.email,
     password_hash,
     department_id: 1, 
-    position: 'Karyawan',
+    position: position,
     phone: data.phone || null,
-    avatar: initials
+    avatar: initials,
+    role
   };
 
   await userModel.createUser(newUser);
 
-  const userForToken = { id: newUser.id, email: newUser.email, department_id: newUser.department_id };
+  const userForToken = { id: newUser.id, email: newUser.email, department_id: newUser.department_id, role: newUser.role };
   const token = generateToken(userForToken);
 
-  return { token, user: { id: newUser.id, name: newUser.name, email: newUser.email, position: newUser.position, avatar: newUser.avatar } };
+  return { token, user: { id: newUser.id, name: newUser.name, email: newUser.email, position: newUser.position, avatar: newUser.avatar, role: newUser.role } };
 };
 
 exports.login = async (email, password) => {
@@ -43,7 +57,7 @@ exports.login = async (email, password) => {
   }
 
   const token = generateToken(user);
-  return { token, user: { id: user.id, name: user.name, email: user.email, position: user.position, avatar: user.avatar } };
+  return { token, user: { id: user.id, name: user.name, email: user.email, position: user.position, avatar: user.avatar, role: user.role } };
 };
 
 exports.getMe = async (userId) => {
@@ -51,5 +65,5 @@ exports.getMe = async (userId) => {
   if (!user) {
     throw { statusCode: 404, message: 'User tidak ditemukan' };
   }
-  return { id: user.id, name: user.name, email: user.email, position: user.position, avatar: user.avatar };
+  return { id: user.id, name: user.name, email: user.email, position: user.position, avatar: user.avatar, role: user.role };
 };

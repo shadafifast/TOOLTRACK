@@ -13,7 +13,7 @@ exports.comparePassword = async (password, hash) => {
 
 exports.generateToken = (user) => {
   return jwt.sign(
-    { id: user.id, email: user.email, department: user.department_id },
+    { id: user.id, email: user.email, department: user.department_id, role: user.role },
     process.env.JWT_SECRET || 'secret',
     { expiresIn: '1d' }
   );
