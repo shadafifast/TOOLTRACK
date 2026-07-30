@@ -28,3 +28,6 @@ DELIMITER ;
 
 -- Update existing positions based on rules
 UPDATE users SET position = CASE WHEN email LIKE '%@smig.com' THEN 'Teknisi' WHEN email LIKE '%@gmail.com' OR email LIKE '%@outlook.com' THEN 'Magang' ELSE position END;
+
+-- Delete 'Proyektor & Audio' category
+DELETE FROM tool_categories WHERE name = 'Proyektor & Audio';

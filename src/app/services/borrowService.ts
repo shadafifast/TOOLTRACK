@@ -64,7 +64,7 @@ export async function returnBorrow(borrowId: string, payload: ReturnPayload): Pr
 
 export async function quickBorrow(toolId: string, employeeId: string): Promise<BorrowRecord> {
   const estimatedReturnDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
-  return apiCall<BorrowRecord>("/borrows", { method: "POST", body: { toolId, employeeId, estimatedReturnDate } });
+  return apiCall<BorrowRecord>("/borrows/quick", { method: "POST", body: { toolId, employeeId, estimatedReturnDate } });
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {

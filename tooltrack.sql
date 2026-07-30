@@ -66,8 +66,7 @@ INSERT INTO `tool_categories` (`id`, `name`) VALUES
 (3, 'Alat Ukur'),
 (1, 'Komputer & Laptop'),
 (2, 'Peralatan Jaringan'),
-(4, 'Perkakas Tangan'),
-(5, 'Proyektor & Audio');
+(4, 'Perkakas Tangan');
 
 -- --------------------------------------------------------
 

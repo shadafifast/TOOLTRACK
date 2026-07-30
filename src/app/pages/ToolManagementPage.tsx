@@ -32,6 +32,12 @@ function AddToolModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: 
       setNextId(idRes.nextId);
       setCats(catRes);
       if (catRes.length > 0) setKat(catRes[0]);
+      
+      // Auto-generate serial number (e.g. SN-TL007-482)
+      const cleanId = idRes.nextId.replace("-", "");
+      const randNum = Math.floor(100 + Math.random() * 900);
+      setSeri(`SN-${cleanId}-${randNum}`);
+      
       setLoadingInit(false);
     });
   }, []);
@@ -98,7 +104,7 @@ function AddToolModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: 
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label htmlFor={`${uid}-seri`} className="text-xs font-semibold text-slate-600 block mb-1.5">Nomor Seri *</label>
-                <input id={`${uid}-seri`} type="text" value={seri} onChange={e => setSeri(e.target.value)} className="w-full px-3 py-2 text-sm border border-border rounded-lg" />
+                <input id={`${uid}-seri`} type="text" value={seri} readOnly className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed" />
               </div>
               <div>
                 <label htmlFor={`${uid}-kat`} className="text-xs font-semibold text-slate-600 block mb-1.5">Kategori</label>
@@ -374,7 +380,14 @@ export function ToolManagementPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-1 text-[10px] text-slate-400">
-                        <Clock size={10} className="text-slate-300" />{t.lastScanTime || "-"}
+                        <Clock size={10} className="text-slate-300" />
+                        {t.lastScanTime ? new Date(t.lastScanTime).toLocaleString("id-ID", {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit"
+                        }).replace(/\./g, ":") : "-"}
                       </div>
                     </td>
                     <td className="px-4 py-3">

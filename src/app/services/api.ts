@@ -37,7 +37,8 @@ export async function apiCall<T>(endpoint: string, options: ApiOptions = {}): Pr
   if (!response.ok) {
     if (response.status === 401) { 
         clearToken(); 
-        if (window.location.pathname !== '/login') {
+        const publicPages = ["/login", "/register", "/quick-scan"];
+        if (!publicPages.includes(window.location.pathname)) {
             window.location.href = "/login"; 
         }
     }

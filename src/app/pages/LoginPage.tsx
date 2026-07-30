@@ -42,7 +42,7 @@ export function LoginPage() {
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="nama@perusahaan.com"
+              placeholder="nama@email.com"
               className="w-full px-3.5 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-slate-50 placeholder:text-slate-300"
             />
           </div>

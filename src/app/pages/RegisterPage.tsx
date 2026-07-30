@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { QrCode, Eye, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
-import { getDepartments } from "../services/employeeService";
 import { register } from "../services/authService";
 
 export function RegisterPage() {
@@ -70,7 +69,7 @@ export function RegisterPage() {
             </div>
             <div className="col-span-2">
               <label className="text-xs font-semibold text-slate-600 block mb-1.5">Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@perusahaan.com" className="w-full px-3.5 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50 placeholder:text-slate-300" />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="nama@email.com" className="w-full px-3.5 py-2.5 text-sm border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 bg-slate-50 placeholder:text-slate-300" />
             </div>
 
             <div className="col-span-2">

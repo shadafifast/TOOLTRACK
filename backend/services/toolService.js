@@ -12,6 +12,9 @@ exports.getAllTools = async (query) => {
 };
 
 exports.getToolById = async (id) => {
+  // Update last scan time to current local time
+  await toolModel.update(id, { last_scan_time: new Date() });
+  
   const tool = await toolModel.findById(id);
   if (!tool) throw { statusCode: 404, message: 'Alat tidak ditemukan' };
   return tool;

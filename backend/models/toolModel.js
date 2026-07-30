@@ -1,7 +1,7 @@
 const pool = require('../config/database');
 
 exports.findAll = async (filters, page = 1, limit = 10) => {
-  let query = 'SELECT t.id, t.name, c.name as category, t.location, t.status, t.serial_number as serialNumber, t.purchase_date as purchaseDate, t.description, t.photo_url as photoUrl, t.last_user_id as lastUser, t.last_scan_time as lastScanTime FROM tools t LEFT JOIN tool_categories c ON t.category_id = c.id WHERE 1=1';
+  let query = 'SELECT t.id, t.name, c.name as category, t.location, t.status, t.serial_number as serialNumber, t.purchase_date as purchaseDate, t.description, t.photo_url as photoUrl, u.name as lastUser, t.last_scan_time as lastScanTime FROM tools t LEFT JOIN tool_categories c ON t.category_id = c.id LEFT JOIN users u ON t.last_user_id = u.id WHERE 1=1';
   const params = [];
 
   if (filters.search) {
@@ -17,7 +17,7 @@ exports.findAll = async (filters, page = 1, limit = 10) => {
     params.push(filters.category);
   }
 
-  const countQuery = query.replace('SELECT t.id, t.name, c.name as category, t.location, t.status, t.serial_number as serialNumber, t.purchase_date as purchaseDate, t.description, t.photo_url as photoUrl, t.last_user_id as lastUser, t.last_scan_time as lastScanTime', 'SELECT COUNT(*) as total');
+  const countQuery = query.replace('SELECT t.id, t.name, c.name as category, t.location, t.status, t.serial_number as serialNumber, t.purchase_date as purchaseDate, t.description, t.photo_url as photoUrl, u.name as lastUser, t.last_scan_time as lastScanTime', 'SELECT COUNT(*) as total');
   const [[{ total }]] = await pool.execute(countQuery, params);
 
   const offset = (page - 1) * limit;
@@ -32,7 +32,7 @@ exports.findAll = async (filters, page = 1, limit = 10) => {
 };
 
 exports.findById = async (id) => {
-  const [rows] = await pool.execute('SELECT t.id, t.name, c.name as category, t.location, t.status, t.serial_number as serialNumber, t.purchase_date as purchaseDate, t.description, t.photo_url as photoUrl, t.last_user_id as lastUser, t.last_scan_time as lastScanTime FROM tools t LEFT JOIN tool_categories c ON t.category_id = c.id WHERE t.id = ?', [id]);
+  const [rows] = await pool.execute('SELECT t.id, t.name, c.name as category, t.location, t.status, t.serial_number as serialNumber, t.purchase_date as purchaseDate, t.description, t.photo_url as photoUrl, u.name as lastUser, t.last_scan_time as lastScanTime FROM tools t LEFT JOIN tool_categories c ON t.category_id = c.id LEFT JOIN users u ON t.last_user_id = u.id WHERE t.id = ?', [id]);
   return rows[0];
 };
 

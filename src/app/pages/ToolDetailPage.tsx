@@ -150,42 +150,57 @@ export function ToolDetailPage() {
     if (!wrapper) return;
     const canvas = wrapper.querySelector("canvas");
     const svg = wrapper.querySelector("svg");
-    const scale = 4;
+    
+    const cardCanvas = document.createElement("canvas");
+    const ctx = cardCanvas.getContext("2d");
+    if (!ctx) return;
+    
+    // Card dimensions (premium card layout)
+    const cardWidth = 400;
+    const cardHeight = 460;
+    cardCanvas.width = cardWidth;
+    cardCanvas.height = cardHeight;
+    
+    // Fill background with white
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, cardWidth, cardHeight);
+    
+    // Draw subtle border around the card
+    ctx.strokeStyle = "#f1f5f9";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(2, 2, cardWidth - 4, cardHeight - 4);
+    
+    const drawQR = (qrImg: HTMLCanvasElement | HTMLImageElement) => {
+      // Centered QR Code
+      const qrSize = 300;
+      const qrX = (cardWidth - qrSize) / 2;
+      const qrY = 40; 
+      
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize);
+      
+      // Draw Text Label below it (monospace bold)
+      ctx.fillStyle = "#1e293b"; 
+      ctx.font = "bold 24px monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(tool.id, cardWidth / 2, 395); 
+      
+      const a = document.createElement("a");
+      a.href = cardCanvas.toDataURL("image/png");
+      a.download = `QR-${tool.id}.png`;
+      a.click();
+    };
+
     if (canvas) {
-      const out = document.createElement("canvas");
-      out.width = canvas.width * scale;
-      out.height = canvas.height * scale;
-      const ctx = out.getContext("2d");
-      if (ctx) {
-        ctx.fillStyle = "#ffffff";
-        ctx.fillRect(0, 0, out.width, out.height);
-        ctx.imageSmoothingEnabled = false;
-        ctx.drawImage(canvas, 0, 0, out.width, out.height);
-        const a = document.createElement("a");
-        a.href = out.toDataURL("image/png");
-        a.download = `QR-${tool.id}.png`;
-        a.click();
-      }
+      drawQR(canvas);
     } else if (svg) {
-      const size = svg.getBoundingClientRect().width || 144;
-      const outCanvas = document.createElement("canvas");
-      outCanvas.width = size * scale;
-      outCanvas.height = size * scale;
-      const ctx = outCanvas.getContext("2d");
       const svgData = new XMLSerializer().serializeToString(svg);
       const blob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
       const url = URL.createObjectURL(blob);
       const img = new Image();
       img.onload = () => {
-        if (ctx) {
-          ctx.fillStyle = "#ffffff";
-          ctx.fillRect(0, 0, outCanvas.width, outCanvas.height);
-          ctx.drawImage(img, 0, 0, outCanvas.width, outCanvas.height);
-          const a = document.createElement("a");
-          a.href = outCanvas.toDataURL("image/png");
-          a.download = `QR-${tool.id}.png`;
-          a.click();
-        }
+        drawQR(img);
         URL.revokeObjectURL(url);
       };
       img.src = url;
@@ -294,7 +309,13 @@ export function ToolDetailPage() {
                 { l: "Kategori",           v: tool.category,      mono: false },
                 { l: "Lokasi Penyimpanan", v: tool.location,      mono: false },
                 { l: "Tanggal Pembelian",  v: tool.purchaseDate ? new Date(tool.purchaseDate).toLocaleDateString() : "-", mono: false },
-                { l: "Scan Terakhir",      v: tool.lastScanTime || "-", mono: false },
+                { l: "Scan Terakhir",      v: tool.lastScanTime ? new Date(tool.lastScanTime).toLocaleString("id-ID", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                }).replace(/\./g, ":") : "-", mono: false },
               ].map((f, i) => (
                 <div key={i}>
                   <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1">{f.l}</div>
@@ -312,7 +333,16 @@ export function ToolDetailPage() {
             <div>
               <div className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Pengguna Terakhir</div>
               <div className="text-sm font-bold text-slate-800">{tool.lastUser || "-"}</div>
-              <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1"><Clock size={10} />{tool.lastScanTime || "-"}</div>
+              <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                <Clock size={10} />
+                {tool.lastScanTime ? new Date(tool.lastScanTime).toLocaleString("id-ID", {
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                }).replace(/\./g, ":") : "-"}
+              </div>
             </div>
             <div className="flex gap-2">
               {tool.status === "available" && (
