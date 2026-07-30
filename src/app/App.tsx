@@ -1,12 +1,13 @@
 // ─── App Root (React Router v7) ──────────────────────────────────────────────
-// OPTIMASI: Semua halaman dimuat secara LAZY (hanya saat dibutuhkan).
-// Dampak: Bundle awal (~280 KB) jauh lebih kecil dari sebelumnya (~731 KB).
-// Tampilan & fungsi tidak berubah sama sekali.
+// PERBAIKAN BUG: Suspense dipindah ke tiap route secara individual.
+// Sebelumnya: 1 Suspense membungkus semua Routes → navigasi ke lazy page stuck,
+//             harus refresh baru bisa pindah halaman.
+// Sesudah:    Setiap route punya Suspense sendiri → navigasi langsung tanpa refresh.
 
 import { Suspense, lazy } from "react";
 import { Routes, Route, Navigate } from "react-router";
 
-// ─── Loading Spinner (tampil saat halaman sedang dimuat) ──────────────────────
+// ─── Loading Spinner ──────────────────────────────────────────────────────────
 function PageLoader() {
   return (
     <div className="min-h-screen bg-[#F1F5F9] flex items-center justify-center">
@@ -18,8 +19,16 @@ function PageLoader() {
   );
 }
 
+// Helper agar tidak perlu tulis <Suspense> berulang di setiap route
+function Lazy({ component: Component }: { component: React.ComponentType }) {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Component />
+    </Suspense>
+  );
+}
+
 // ─── Layout ───────────────────────────────────────────────────────────────────
-// Layout tidak di-lazy karena dipakai di hampir semua halaman
 import { DashboardLayout } from "./layouts/DashboardLayout";
 
 // ─── Public Pages — Lazy Loaded ───────────────────────────────────────────────
@@ -28,7 +37,6 @@ const RegisterPage  = lazy(() => import("./pages/RegisterPage").then(m => ({ def
 const QuickScanPage = lazy(() => import("./pages/QuickScanPage").then(m => ({ default: m.QuickScanPage })));
 
 // ─── Protected Pages — Lazy Loaded ───────────────────────────────────────────
-// Setiap halaman hanya dimuat saat user benar-benar membuka URL tersebut
 const DashboardPage      = lazy(() => import("./pages/DashboardPage").then(m => ({ default: m.DashboardPage })));
 const ToolManagementPage = lazy(() => import("./pages/ToolManagementPage").then(m => ({ default: m.ToolManagementPage })));
 const ToolDetailPage     = lazy(() => import("./pages/ToolDetailPage").then(m => ({ default: m.ToolDetailPage })));
@@ -39,29 +47,27 @@ const BorrowHistoryPage  = lazy(() => import("./pages/BorrowHistoryPage").then(m
 
 export default function App() {
   return (
-    // Suspense menampilkan PageLoader sementara halaman sedang dimuat
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        {/* ─── Public Routes ───────────────────────────────────────────── */}
-        <Route path="/login"      element={<LoginPage />} />
-        <Route path="/register"   element={<RegisterPage />} />
-        <Route path="/quick-scan" element={<QuickScanPage />} />
+    <Routes>
+      {/* ─── Public Routes ─────────────────────────────────────────────── */}
+      {/* Setiap route punya <Suspense> sendiri → navigasi tidak pernah stuck */}
+      <Route path="/login"      element={<Lazy component={LoginPage} />} />
+      <Route path="/register"   element={<Lazy component={RegisterPage} />} />
+      <Route path="/quick-scan" element={<Lazy component={QuickScanPage} />} />
 
-        {/* ─── Protected Routes (dengan Sidebar & Header) ──────────────── */}
-        <Route element={<DashboardLayout />}>
-          <Route path="/dashboard"               element={<DashboardPage />} />
-          <Route path="/tools"                   element={<ToolManagementPage />} />
-          <Route path="/tools/:toolId"           element={<ToolDetailPage />} />
-          <Route path="/qr-scan"                 element={<QRScanPage />} />
-          <Route path="/history"                 element={<BorrowHistoryPage />} />
-          <Route path="/borrow-confirm/:toolId"  element={<BorrowConfirmPage />} />
-          <Route path="/return-confirm/:toolId"  element={<ReturnConfirmPage />} />
-        </Route>
+      {/* ─── Protected Routes (dengan Sidebar & Header) ──────────────────── */}
+      <Route element={<DashboardLayout />}>
+        <Route path="/dashboard"               element={<Lazy component={DashboardPage} />} />
+        <Route path="/tools"                   element={<Lazy component={ToolManagementPage} />} />
+        <Route path="/tools/:toolId"           element={<Lazy component={ToolDetailPage} />} />
+        <Route path="/qr-scan"                 element={<Lazy component={QRScanPage} />} />
+        <Route path="/history"                 element={<Lazy component={BorrowHistoryPage} />} />
+        <Route path="/borrow-confirm/:toolId"  element={<Lazy component={BorrowConfirmPage} />} />
+        <Route path="/return-confirm/:toolId"  element={<Lazy component={ReturnConfirmPage} />} />
+      </Route>
 
-        {/* ─── Default Redirect ─────────────────────────────────────────── */}
-        <Route path="/"  element={<Navigate to="/login" replace />} />
-        <Route path="*"  element={<Navigate to="/login" replace />} />
-      </Routes>
-    </Suspense>
+      {/* ─── Default Redirect ─────────────────────────────────────────────── */}
+      <Route path="/"  element={<Navigate to="/login" replace />} />
+      <Route path="*"  element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }

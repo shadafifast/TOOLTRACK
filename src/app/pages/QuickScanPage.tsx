@@ -37,9 +37,14 @@ export function QuickScanPage() {
     { value: "damaged",   label: "Rusak",       active: "border-red-500 bg-red-50 text-red-700",            dot: "bg-red-500" },
   ];
 
+  // Guard untuk mencegah double-init di React Strict Mode (useEffect jalan 2x)
+  const startedRef = useRef(false);
+
   // Mulai kamera hanya saat step === "scan"
   useEffect(() => {
     if (step !== "scan") return;
+    if (startedRef.current) return;
+    startedRef.current = true;
 
     const html5QrCode = new Html5Qrcode("reader");
     html5QrRef.current = html5QrCode;
@@ -55,12 +60,14 @@ export function QuickScanPage() {
     ).catch((err) => {
       console.error("Camera error:", err);
       setCamError("Tidak bisa mengakses kamera. Pastikan perangkat memiliki kamera dan izin diberikan.");
+      startedRef.current = false;
     });
 
     return () => {
       if (html5QrCode.isScanning) {
         html5QrCode.stop().catch(console.error);
       }
+      startedRef.current = false;
     };
   }, [step]);
 

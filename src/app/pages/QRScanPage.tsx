@@ -14,29 +14,44 @@ export function QRScanPage() {
   const [result, setResult] = useState<Tool | null>(null);
   const [camError, setCamError] = useState("");
   const html5QrRef = useRef<Html5Qrcode | null>(null);
+  // Guard untuk mencegah double-init di React Strict Mode (useEffect jalan 2x)
+  const startedRef = useRef(false);
 
-  useEffect(() => {
-    const html5QrCode = new Html5Qrcode("main-reader");
-    html5QrRef.current = html5QrCode;
-
-    html5QrCode.start(
+  const startCamera = (instance: Html5Qrcode) => {
+    return instance.start(
       { facingMode: "environment" },
       { fps: 10, qrbox: { width: 240, height: 240 } },
       (text) => {
-        html5QrCode.stop().catch(console.error);
+        instance.stop().catch(console.error);
         handleScan(text);
       },
       () => {}
-    ).catch((err) => {
+    );
+  };
+
+  useEffect(() => {
+    // Strict Mode menjalankan useEffect 2x — cegah inisialisasi ganda
+    if (startedRef.current) return;
+    startedRef.current = true;
+
+    const html5QrCode = new Html5Qrcode("main-reader");
+    html5QrRef.current = html5QrCode;
+
+    startCamera(html5QrCode).catch((err) => {
       console.error("Camera error:", err);
       setCamError("Tidak bisa mengakses kamera. Pastikan izin diberikan.");
+      startedRef.current = false;
     });
 
+    // Cleanup: hentikan kamera saat pindah halaman
     return () => {
       if (html5QrCode.isScanning) {
         html5QrCode.stop().catch(console.error);
       }
+      // Reset guard agar bisa restart jika kembali ke halaman ini
+      startedRef.current = false;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleScan = async (toolId: string) => {
